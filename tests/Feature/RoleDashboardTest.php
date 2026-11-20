@@ -37,6 +37,31 @@ class RoleDashboardTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_admin_dashboard_renders_the_overview(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Pengajuan Terbaru')
+            ->assertSee('Menunggu Verifikasi')
+            ->assertSee('Total Penduduk');
+    }
+
+    public function test_warga_dashboard_renders_their_summary(): void
+    {
+        $warga = User::factory()->create();
+        $warga->assignRole('warga');
+
+        $this->actingAs($warga)
+            ->get(route('warga.dashboard'))
+            ->assertOk()
+            ->assertSee('Ajukan Surat')
+            ->assertSee('Riwayat Singkat');
+    }
+
     public function test_admin_login_redirects_to_admin_dashboard(): void
     {
         $admin = User::factory()->create();

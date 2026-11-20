@@ -17,7 +17,7 @@ class PasswordResetTest extends TestCase
         $response = $this->get('/forgot-password');
 
         $response->assertOk()
-            ->assertSee('Lupa kata sandi?')
+            ->assertSee('Atur ulang kata sandi')
             ->assertSee('Kirim Tautan Atur Ulang Kata Sandi');
     }
 
