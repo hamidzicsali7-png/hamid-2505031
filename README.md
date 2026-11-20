@@ -47,8 +47,13 @@ untuk pengurusan surat keterangan di kantor desa.
 
    ```sh
    php artisan migrate
+   php artisan db:seed
    npm run build
    ```
+
+   Seeder menyiapkan role serta akun demo dengan kata sandi `password`:
+   `admin@sikades.test`, `kades@sikades.test`, `sekretaris@sikades.test`,
+   dan `warga@sikades.test`.
 
 5. Jalankan server pengembangan:
 
