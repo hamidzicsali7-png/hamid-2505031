@@ -25,7 +25,8 @@ class PengajuanSuratRequest extends FormRequest
         return [
             'jenis_surat_id' => ['required', 'exists:jenis_surat,id'],
             'keperluan' => ['required', 'string', 'max:255'],
-            'keterangan' => ['nullable', 'string', 'max:2000'],
+            'data_tambahan' => ['nullable', 'array'],
+            'data_tambahan.*' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }

@@ -7,6 +7,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -48,5 +50,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function penduduk(): HasOne
+    {
+        return $this->hasOne(Penduduk::class);
+    }
+
+    public function pengajuanSurat(): HasMany
+    {
+        return $this->hasMany(PengajuanSurat::class);
+    }
+
+    public function pengajuanDiverifikasi(): HasMany
+    {
+        return $this->hasMany(PengajuanSurat::class, 'diverifikasi_oleh');
+    }
+
+    public function pengajuanDisetujui(): HasMany
+    {
+        return $this->hasMany(PengajuanSurat::class, 'disetujui_oleh');
+    }
+
+    public function logAktivitas(): HasMany
+    {
+        return $this->hasMany(LogAktivitas::class);
     }
 }

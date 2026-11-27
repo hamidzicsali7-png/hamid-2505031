@@ -13,15 +13,25 @@ return new class extends Migration
     {
         Schema::create('penduduk', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('nik', 16)->unique();
+            $table->string('no_kk', 16);
             $table->string('nama');
-            $table->string('tempat_lahir')->nullable();
-            $table->date('tanggal_lahir')->nullable();
-            $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
-            $table->text('alamat')->nullable();
-            $table->string('no_hp', 20)->nullable();
+            $table->string('tempat_lahir');
+            $table->date('tgl_lahir');
+            $table->enum('jenis_kelamin', ['L', 'P']);
+            $table->string('agama');
+            $table->string('pekerjaan');
+            $table->string('status_perkawinan');
+            $table->string('kewarganegaraan')->default('WNI');
+            $table->text('alamat');
+            $table->string('rt', 3);
+            $table->string('rw', 3);
+            $table->string('dusun')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+
+            $table->index(['nama', 'alamat']);
+            $table->index('user_id');
         });
     }
 

@@ -1,16 +1,17 @@
 @props(['status'])
 
 @php
-    $value = $status instanceof \BackedEnum ? $status->value : (string) $status;
-    [$label, $classes] = match ($value) {
-        'draft' => ['Draft', 'bg-slate-100 text-slate-600'],
-        'diajukan' => ['Diajukan', 'bg-amber-50 text-warning'],
-        'diverifikasi' => ['Menunggu TTD', 'bg-blue-50 text-blue-700'],
-        'disetujui' => ['Disetujui', 'bg-indigo-50 text-primary'],
-        'selesai' => ['Selesai', 'bg-emerald-50 text-success'],
-        'ditolak' => ['Ditolak', 'bg-red-50 text-danger'],
-        'revisi' => ['Perlu Revisi', 'bg-orange-50 text-orange-700'],
-        default => [ucfirst($value), 'bg-slate-100 text-slate-600'],
+    $statusEnum = $status instanceof \App\Enums\StatusPengajuan
+        ? $status
+        : \App\Enums\StatusPengajuan::tryFrom((string) $status);
+    $label = $statusEnum?->label() ?? ucfirst((string) $status);
+    $classes = match ($statusEnum?->color()) {
+        'warning' => 'bg-amber-50 text-warning',
+        'info' => 'bg-blue-50 text-blue-700',
+        'primary' => 'bg-indigo-50 text-primary',
+        'success' => 'bg-emerald-50 text-success',
+        'danger' => 'bg-red-50 text-danger',
+        default => 'bg-slate-100 text-slate-600',
     };
 @endphp
 

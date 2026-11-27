@@ -18,7 +18,12 @@ class JenisSuratFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'kode' => fake()->unique()->bothify('JS??##'),
+            'nama' => fake()->words(3, true),
+            'deskripsi' => fake()->sentence(),
+            'template_view' => 'surat.pdf',
+            'aktif' => true,
+            'field_tambahan' => [],
         ];
     }
 }

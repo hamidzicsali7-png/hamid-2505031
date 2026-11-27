@@ -4,19 +4,44 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Penduduk extends Model
 {
     use HasFactory;
 
     protected $table = 'penduduk';
-    protected $fillable = ['user_id', 'nik', 'nama', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'alamat', 'no_hp'];
+    protected $fillable = [
+        'nik',
+        'no_kk',
+        'nama',
+        'tempat_lahir',
+        'tgl_lahir',
+        'jenis_kelamin',
+        'agama',
+        'pekerjaan',
+        'status_perkawinan',
+        'kewarganegaraan',
+        'alamat',
+        'rt',
+        'rw',
+        'dusun',
+        'user_id',
+    ];
 
     protected function casts(): array
     {
-        return ['tanggal_lahir' => 'date'];
+        return ['tgl_lahir' => 'date'];
     }
 
-    public function user() { return $this->belongsTo(User::class); }
-    public function pengajuanSurat() { return $this->hasMany(PengajuanSurat::class, 'penduduk_id'); }
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function pengajuanSurat(): HasMany
+    {
+        return $this->hasMany(PengajuanSurat::class);
+    }
 }

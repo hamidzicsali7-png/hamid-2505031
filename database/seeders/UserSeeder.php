@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Penduduk;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -29,20 +28,6 @@ class UserSeeder extends Seeder
             );
             $user->syncRoles([$data['peran']]);
 
-            if ($data['peran'] === 'warga') {
-                Penduduk::updateOrCreate(
-                    ['user_id' => $user->id],
-                    [
-                        'nik' => $user->nik,
-                        'nama' => $user->name,
-                        'tempat_lahir' => 'Desa Makmur',
-                        'tanggal_lahir' => '1995-05-10',
-                        'jenis_kelamin' => 'L',
-                        'alamat' => 'Dusun 1 RT 001 RW 001',
-                        'no_hp' => $user->no_hp,
-                    ],
-                );
-            }
         }
     }
 }
