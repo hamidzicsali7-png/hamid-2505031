@@ -9,7 +9,7 @@ use App\Models\Penduduk;
 use App\Models\PengajuanSurat;
 use App\Models\SyaratSurat;
 use App\Models\User;
-use App\Services\PengajuanSuratService;
+use App\Services\AlurPengajuanService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -104,7 +104,7 @@ class WargaPengajuanTest extends TestCase
         $this->assertMatchesRegularExpression('/^PGJ-\d{8}-0001$/', $pengajuan->kode_pengajuan);
         $this->assertDatabaseHas('log_aktivitas', [
             'pengajuan_surat_id' => $pengajuan->id,
-            'aksi' => 'pengajuan.status',
+            'aksi' => 'pengajuan.dibuat',
         ]);
 
         $this->patch(route('warga.pengajuan.update', $pengajuan), [
@@ -148,10 +148,13 @@ class WargaPengajuanTest extends TestCase
         $this->assertSame(2, $pengajuan->logAktivitas()->count());
         $this->get(route('warga.pengajuan.dokumen', [$pengajuan, $dokumen]))->assertOk();
 
-        app(PengajuanSuratService::class)->ubahStatus(
+        $sekretaris = User::factory()->create();
+        $sekretaris->assignRole('sekretaris');
+
+        app(AlurPengajuanService::class)->transisikan(
             $pengajuan,
             StatusPengajuan::Revisi,
-            null,
+            $sekretaris,
             'Foto identitas kurang jelas.',
             '127.0.0.2',
         );

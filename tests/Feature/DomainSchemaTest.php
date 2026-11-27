@@ -14,8 +14,9 @@ use App\Models\PengaturanDesa;
 use App\Models\SuratTerbit;
 use App\Models\SyaratSurat;
 use App\Models\User;
-use App\Services\PengajuanSuratService;
+use App\Services\AlurPengajuanService;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -97,6 +98,7 @@ class DomainSchemaTest extends TestCase
 
     public function test_completing_an_application_issues_a_sequentially_numbered_letter(): void
     {
+        $this->seed(RoleSeeder::class);
         $jenisSurat = JenisSurat::factory()->create(['kode' => 'SKD']);
         $pengajuan = PengajuanSurat::factory()->create([
             'jenis_surat_id' => $jenisSurat->id,
@@ -104,9 +106,16 @@ class DomainSchemaTest extends TestCase
         ]);
         PejabatDesa::factory()->create(['jabatan' => 'Kepala Desa', 'aktif' => true]);
         PengaturanDesa::factory()->create(['format_nomor_surat' => '{nomor}/{kode}/{tahun}']);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
 
-        $service = app(PengajuanSuratService::class);
-        $service->ubahStatus($pengajuan, StatusPengajuan::Selesai);
+        app(AlurPengajuanService::class)->transisikan(
+            $pengajuan,
+            StatusPengajuan::Selesai,
+            $admin,
+            null,
+            '127.0.0.1',
+        );
 
         $this->assertSame('0001/SKD/'.now()->year, $pengajuan->fresh()->suratTerbit->nomor_surat);
         $this->assertSame(StatusPengajuan::Selesai, $pengajuan->fresh()->status);

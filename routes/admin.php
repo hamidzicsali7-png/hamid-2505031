@@ -21,7 +21,11 @@ Route::middleware(['auth', 'role:admin|kades|sekretaris'])
         Route::get('/pengaturan-desa', [PengaturanDesaController::class, 'index'])->name('pengaturan-desa.index');
         Route::put('/pengaturan-desa', [PengaturanDesaController::class, 'update'])->name('pengaturan-desa.update');
         Route::get('/pengajuan', [PengajuanSuratController::class, 'index'])->name('pengajuan.index');
+        Route::get('/pengajuan/{pengajuan}/dokumen/{dokumen}', [PengajuanSuratController::class, 'dokumen'])->name('pengajuan.dokumen');
         Route::get('/pengajuan/{pengajuan}', [PengajuanSuratController::class, 'show'])->name('pengajuan.show');
         Route::patch('/pengajuan/{pengajuan}/status', [PengajuanSuratController::class, 'status'])->name('pengajuan.status');
         Route::get('/pengajuan/{pengajuan}/pdf', [PengajuanSuratController::class, 'pdf'])->name('pengajuan.pdf');
+        Route::get('/antrean-persetujuan', [PengajuanSuratController::class, 'antrean'])
+            ->middleware('role:kades')
+            ->name('antrean-persetujuan.index');
     });

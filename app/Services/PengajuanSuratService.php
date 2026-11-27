@@ -5,22 +5,20 @@ namespace App\Services;
 use App\Enums\StatusPengajuan;
 use App\Models\JenisSurat;
 use App\Models\LogAktivitas;
-use App\Models\NomorSuratCounter;
-use App\Models\PejabatDesa;
 use App\Models\Penduduk;
 use App\Models\PengajuanSurat;
-use App\Models\PengaturanDesa;
-use App\Models\SuratTerbit;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use LogicException;
 use RuntimeException;
 use Throwable;
 
 class PengajuanSuratService
 {
+    public function __construct(private readonly AlurPengajuanService $alurPengajuan) {}
+
     /**
      * Simpan pengajuan baru atau perbaikan pengajuan yang sudah dimiliki warga.
      *
@@ -53,7 +51,6 @@ class PengajuanSuratService
         try {
             $hasil = DB::transaction(function () use ($data, $dokumen, $aksi, $penduduk, $pengajuan, $ipAddress, &$fileBaru, &$fileLama): PengajuanSurat {
                 $pengajuanBaru = $pengajuan === null;
-                $statusSebelumnya = $pengajuan?->status;
 
                 if ($pengajuanBaru) {
                     $pengajuan = new PengajuanSurat([
@@ -61,18 +58,13 @@ class PengajuanSuratService
                         'user_id' => $penduduk->user_id,
                         'penduduk_id' => $penduduk->id,
                         'jenis_surat_id' => $data['jenis_surat_id'],
+                        'status' => StatusPengajuan::Draft,
                     ]);
                 }
-
-                $statusBaru = $aksi === 'ajukan'
-                    ? StatusPengajuan::Diajukan
-                    : ($statusSebelumnya ?? StatusPengajuan::Draft);
 
                 $pengajuan->fill([
                     'keperluan' => $data['keperluan'],
                     'data_tambahan' => $data['data_tambahan'] ?? [],
-                    'status' => $statusBaru,
-                    'catatan' => $aksi === 'ajukan' ? null : $pengajuan->catatan,
                     'tgl_pengajuan' => $pengajuanBaru || $aksi === 'ajukan' ? now() : $pengajuan->tgl_pengajuan,
                 ])->save();
 
@@ -112,12 +104,22 @@ class PengajuanSuratService
                     }
                 }
 
-                if ($statusSebelumnya !== $statusBaru) {
-                    $this->catatPerubahanStatus(
+                if ($pengajuanBaru) {
+                    LogAktivitas::create([
+                        'user_id' => $penduduk->user_id,
+                        'pengajuan_surat_id' => $pengajuan->id,
+                        'aksi' => 'pengajuan.dibuat',
+                        'keterangan' => "Pengajuan {$pengajuan->kode_pengajuan} disimpan sebagai draft.",
+                        'ip_address' => $ipAddress ?? '127.0.0.1',
+                    ]);
+                }
+
+                if ($aksi === 'ajukan') {
+                    $this->alurPengajuan->transisikan(
                         $pengajuan,
-                        $statusSebelumnya,
-                        $statusBaru,
-                        $penduduk->user_id,
+                        StatusPengajuan::Diajukan,
+                        User::query()->findOrFail($penduduk->user_id),
+                        null,
                         $ipAddress,
                     );
                 }
@@ -133,37 +135,6 @@ class PengajuanSuratService
         Storage::disk('local')->delete($fileLama);
 
         return $hasil;
-    }
-
-    public function ubahStatus(
-        PengajuanSurat $pengajuan,
-        StatusPengajuan $status,
-        ?int $userId = null,
-        ?string $catatan = null,
-        ?string $ipAddress = null,
-    ): PengajuanSurat {
-        return DB::transaction(function () use ($pengajuan, $status, $userId, $catatan, $ipAddress): PengajuanSurat {
-            $statusSebelumnya = $pengajuan->status;
-            $pengajuan->update(['status' => $status, 'catatan' => $catatan]);
-
-            if ($status === StatusPengajuan::Diverifikasi) {
-                $pengajuan->update(['diverifikasi_oleh' => $userId]);
-            }
-
-            if ($status === StatusPengajuan::Disetujui) {
-                $pengajuan->update(['disetujui_oleh' => $userId]);
-            }
-
-            if ($statusSebelumnya !== $status) {
-                $this->catatPerubahanStatus($pengajuan, $statusSebelumnya, $status, $userId, $ipAddress, $catatan);
-            }
-
-            if ($status === StatusPengajuan::Selesai && ! $pengajuan->suratTerbit()->exists()) {
-                $this->terbitkanSurat($pengajuan);
-            }
-
-            return $pengajuan->fresh();
-        });
     }
 
     /**
@@ -197,60 +168,5 @@ class PengajuanSuratService
             ->value('urutan_terakhir');
 
         return 'PGJ-'.$sekarang->format('Ymd').'-'.str_pad((string) $urutan, 4, '0', STR_PAD_LEFT);
-    }
-
-    private function catatPerubahanStatus(
-        PengajuanSurat $pengajuan,
-        ?StatusPengajuan $statusSebelumnya,
-        StatusPengajuan $statusBaru,
-        ?int $userId,
-        ?string $ipAddress,
-        ?string $catatan = null,
-    ): void {
-        $keterangan = $statusSebelumnya
-            ? "Status pengajuan {$pengajuan->kode_pengajuan} berubah dari {$statusSebelumnya->label()} menjadi {$statusBaru->label()}."
-            : "Pengajuan {$pengajuan->kode_pengajuan} dibuat dengan status {$statusBaru->label()}.";
-
-        if ($catatan) {
-            $keterangan .= ' Catatan: '.$catatan;
-        }
-
-        LogAktivitas::create([
-            'user_id' => $userId,
-            'pengajuan_surat_id' => $pengajuan->id,
-            'aksi' => 'pengajuan.status',
-            'keterangan' => $keterangan,
-            'ip_address' => $ipAddress ?? '127.0.0.1',
-        ]);
-    }
-
-    private function terbitkanSurat(PengajuanSurat $pengajuan): void
-    {
-        $tahun = now()->year;
-        $counter = NomorSuratCounter::query()->firstOrCreate(
-            ['jenis_surat_id' => $pengajuan->jenis_surat_id, 'tahun' => $tahun],
-            ['urutan_terakhir' => 0],
-        );
-        $counter->increment('urutan_terakhir');
-        $urutan = str_pad((string) $counter->fresh()->urutan_terakhir, 4, '0', STR_PAD_LEFT);
-        $jenisSurat = $pengajuan->jenisSurat ?? JenisSurat::query()->findOrFail($pengajuan->jenis_surat_id);
-        $pengaturan = PengaturanDesa::query()->firstOrFail();
-        $pejabat = PejabatDesa::query()
-            ->where('jabatan', 'Kepala Desa')
-            ->where('aktif', true)
-            ->firstOrFail();
-        $nomorSurat = strtr($pengaturan->format_nomor_surat, [
-            '{nomor}' => $urutan,
-            '{kode}' => $jenisSurat->kode,
-            '{tahun}' => (string) $tahun,
-        ]);
-
-        SuratTerbit::create([
-            'pengajuan_surat_id' => $pengajuan->id,
-            'nomor_surat' => $nomorSurat,
-            'tgl_terbit' => now()->toDateString(),
-            'pejabat_id' => $pejabat->id,
-            'kode_verifikasi' => (string) Str::uuid(),
-        ]);
     }
 }

@@ -22,6 +22,14 @@
             ['label' => 'Pengajuan', 'route' => 'warga.pengajuan.index', 'icon' => 'document'],
             ['label' => 'Ajukan Surat', 'route' => 'warga.pengajuan.create', 'icon' => 'plus'],
         ];
+
+    if (auth()->user()->hasRole('kades')) {
+        array_splice($menu, 2, 0, [[
+            'label' => 'Antrean Persetujuan',
+            'route' => 'admin.antrean-persetujuan.index',
+            'icon' => 'approval',
+        ]]);
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -58,6 +66,8 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         @elseif ($item['icon'] === 'settings')
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m19.4 15 .1.1a1.7 1.7 0 0 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 0 1-3.4 0v-.2A1.7 1.7 0 0 0 7.8 17l-.1.1a1.7 1.7 0 0 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 0 1 0-3.4h.2A1.7 1.7 0 0 0 5.4 6l-.1-.1a1.7 1.7 0 0 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2v-.2a1.7 1.7 0 0 1 3.4 0v.2A1.7 1.7 0 0 0 17 3.4l.1-.1a1.7 1.7 0 0 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 0 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z"/></svg>
+                        @elseif ($item['icon'] === 'approval')
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.5 11 14l4-4m5 2a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
                         @else
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
                         @endif
@@ -83,10 +93,35 @@
             </div>
 
             <div class="flex shrink-0 items-center gap-2 sm:gap-3">
-                <button type="button" class="relative grid h-11 w-11 place-items-center rounded-2xl bg-white text-slate-500 shadow-sm ring-1 ring-slate-900/5 transition hover:text-primary" aria-label="Notifikasi">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12h4"/></svg>
-                    <span class="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-danger ring-2 ring-white"></span>
-                </button>
+                <div class="relative" x-data="{ notificationsOpen: false }" @click.outside="notificationsOpen = false" @keydown.escape.window="notificationsOpen = false">
+                    <button type="button" @click="notificationsOpen = !notificationsOpen" :aria-expanded="notificationsOpen" class="relative grid h-11 w-11 place-items-center rounded-2xl bg-white text-slate-500 shadow-sm ring-1 ring-slate-900/5 transition hover:text-primary" aria-label="Notifikasi">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12h4"/></svg>
+                        @if ($jumlahNotifikasiBelumDibaca > 0)
+                            <span class="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-danger px-1 text-[10px] font-bold text-white ring-2 ring-white">{{ $jumlahNotifikasiBelumDibaca > 9 ? '9+' : $jumlahNotifikasiBelumDibaca }}</span>
+                        @endif
+                    </button>
+
+                    <div x-cloak x-show="notificationsOpen" x-transition class="absolute right-0 z-50 mt-3 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-900/5" style="display: none;">
+                        <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                            <p class="text-sm font-bold text-slate-800">Notifikasi</p>
+                            <span class="text-xs text-slate-400">{{ $jumlahNotifikasiBelumDibaca }} belum dibaca</span>
+                        </div>
+                        <div class="max-h-80 overflow-y-auto">
+                            @forelse ($notifikasiBelumDibaca as $notifikasi)
+                                <form method="POST" action="{{ route('notifikasi.baca', $notifikasi->id) }}" class="border-b border-slate-50 last:border-0">
+                                    @csrf
+                                    <button type="submit" class="w-full px-4 py-3 text-left transition hover:bg-soft">
+                                        <span class="block text-xs font-bold text-slate-800">{{ $notifikasi->data['title'] ?? 'Pembaruan pengajuan' }}</span>
+                                        <span class="mt-1 block text-xs leading-relaxed text-slate-500">{{ $notifikasi->data['message'] ?? 'Ada pembaruan pada pengajuan Anda.' }}</span>
+                                        <span class="mt-1 block text-[10px] text-slate-400">{{ $notifikasi->created_at->locale('id')->diffForHumans() }} · klik untuk membaca</span>
+                                    </button>
+                                </form>
+                            @empty
+                                <p class="px-4 py-6 text-center text-xs text-slate-500">Belum ada notifikasi baru.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
 
                 <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
                     <button type="button" @click="open = !open" :aria-expanded="open" class="flex items-center gap-2 rounded-2xl bg-white p-1.5 pr-2.5 shadow-sm ring-1 ring-slate-900/5 sm:gap-3 sm:pr-3">
