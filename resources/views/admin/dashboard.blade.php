@@ -89,5 +89,66 @@
                 </div>
             </div>
         </div>
+
+        <x-card class="border-l-4 border-warning" padding="p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h3 class="font-bold text-slate-900">Pengajuan Belum Diverifikasi</h3>
+                    <p class="mt-1 text-sm text-slate-500">Pengajuan berstatus diajukan yang telah menunggu lebih dari 2 hari.</p>
+                </div>
+                <span class="rounded-2xl bg-amber-50 px-4 py-2 text-2xl font-extrabold text-warning">
+                    {{ number_format($menungguVerifikasiLama, 0, ',', '.') }}
+                </span>
+            </div>
+        </x-card>
+
+        <section class="space-y-4" aria-labelledby="grafik-dashboard-title">
+            <div>
+                <h3 id="grafik-dashboard-title" class="text-lg font-extrabold text-slate-900">Grafik Pelayanan</h3>
+                <p class="mt-1 text-sm text-slate-500">Tren 12 bulan terakhir, termasuk bulan berjalan.</p>
+            </div>
+            <div class="grid gap-5 xl:grid-cols-2">
+                <x-card padding="p-5 sm:p-6">
+                    <h4 class="mb-4 font-bold text-slate-900">Surat Terbit per Bulan</h4>
+                    <div class="h-64">
+                        <canvas
+                            role="img"
+                            aria-label="Grafik area jumlah surat terbit per bulan"
+                            data-dashboard-chart="{{ json_encode(['type' => 'area', 'labels' => $grafik['labelBulan'], 'values' => $grafik['suratTerbit'], 'label' => 'Surat terbit'], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG) }}"
+                        ></canvas>
+                    </div>
+                </x-card>
+                <x-card padding="p-5 sm:p-6">
+                    <h4 class="mb-4 font-bold text-slate-900">Pengajuan Masuk per Bulan</h4>
+                    <div class="h-64">
+                        <canvas
+                            role="img"
+                            aria-label="Grafik garis jumlah pengajuan masuk per bulan"
+                            data-dashboard-chart="{{ json_encode(['type' => 'line', 'labels' => $grafik['labelBulan'], 'values' => $grafik['pengajuanMasuk'], 'label' => 'Pengajuan masuk'], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG) }}"
+                        ></canvas>
+                    </div>
+                </x-card>
+                <x-card padding="p-5 sm:p-6">
+                    <h4 class="mb-4 font-bold text-slate-900">Surat Terbit per Jenis</h4>
+                    <div class="h-64">
+                        <canvas
+                            role="img"
+                            aria-label="Grafik batang jumlah surat terbit per jenis surat"
+                            data-dashboard-chart="{{ json_encode(['type' => 'bar', 'labels' => $grafik['labelSuratPerJenis'], 'values' => $grafik['suratPerJenis'], 'label' => 'Surat terbit'], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG) }}"
+                        ></canvas>
+                    </div>
+                </x-card>
+                <x-card padding="p-5 sm:p-6">
+                    <h4 class="mb-4 font-bold text-slate-900">Komposisi Surat Terbit</h4>
+                    <div class="h-64">
+                        <canvas
+                            role="img"
+                            aria-label="Grafik donat komposisi surat terbit per jenis surat"
+                            data-dashboard-chart="{{ json_encode(['type' => 'doughnut', 'labels' => $grafik['labelKomposisiSurat'], 'values' => $grafik['komposisiSurat'], 'label' => 'Surat terbit'], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG) }}"
+                        ></canvas>
+                    </div>
+                </x-card>
+            </div>
+        </section>
     </div>
 </x-app-layout>

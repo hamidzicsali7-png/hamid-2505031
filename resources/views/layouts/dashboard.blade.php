@@ -12,6 +12,8 @@
         ? [
             ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'home'],
             ['label' => 'Pengajuan', 'route' => 'admin.pengajuan.index', 'icon' => 'document'],
+            ['label' => 'Arsip Surat', 'route' => 'admin.arsip-surat.index', 'icon' => 'archive'],
+            ['label' => 'Laporan', 'route' => 'admin.laporan.index', 'icon' => 'chart'],
             ['label' => 'Penduduk', 'route' => 'admin.penduduk.index', 'icon' => 'users'],
             ['label' => 'Jenis Surat', 'route' => 'admin.jenis-surat.index', 'icon' => 'document'],
             ['label' => 'Pejabat', 'route' => 'admin.pejabat-desa.index', 'icon' => 'users'],
@@ -68,6 +70,10 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m19.4 15 .1.1a1.7 1.7 0 0 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 0 1-3.4 0v-.2A1.7 1.7 0 0 0 7.8 17l-.1.1a1.7 1.7 0 0 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 0 1 0-3.4h.2A1.7 1.7 0 0 0 5.4 6l-.1-.1a1.7 1.7 0 0 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2v-.2a1.7 1.7 0 0 1 3.4 0v.2A1.7 1.7 0 0 0 17 3.4l.1-.1a1.7 1.7 0 0 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 0 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z"/></svg>
                         @elseif ($item['icon'] === 'approval')
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.5 11 14l4-4m5 2a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+                        @elseif ($item['icon'] === 'archive')
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18v4H3zm2 4v12h14V8m-9 4h4"/></svg>
+                        @elseif ($item['icon'] === 'chart')
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19V5m0 14h16M8 15v-4m4 4V7m4 8v-6m4 6V4"/></svg>
                         @else
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
                         @endif

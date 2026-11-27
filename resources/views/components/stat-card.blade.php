@@ -9,9 +9,6 @@
 
 @php
     $trendColor = $direction === 'down' ? 'text-danger bg-red-50' : 'text-success bg-emerald-50';
-    $chartPath = $direction === 'down'
-        ? 'M2 5c8 2 10 1 16 7s10 2 16 7 11 2 16 5'
-        : 'M2 20c8-1 10-10 16-8s10 5 16-1 10-5 16-7';
 @endphp
 
 <x-card class="overflow-hidden" padding="p-5">
@@ -47,7 +44,4 @@
         @endif
     </div>
 
-    <svg class="-mb-5 mt-3 h-10 w-full" viewBox="0 0 56 24" preserveAspectRatio="none" aria-hidden="true">
-        <path d="{{ $chartPath }}" fill="none" stroke="{{ $direction === 'down' ? '#d64550' : '#2E2E8F' }}" stroke-width="2" stroke-linecap="round"/>
-    </svg>
 </x-card>
