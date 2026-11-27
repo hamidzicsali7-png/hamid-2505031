@@ -87,7 +87,7 @@ class JenisSuratSeeder extends Seeder
             foreach ($syarat as $namaDokumen) {
                 SyaratSurat::updateOrCreate(
                     ['jenis_surat_id' => $jenis->id, 'nama_dokumen' => $namaDokumen],
-                    ['wajib' => true],
+                    ['wajib' => $namaDokumen !== 'Surat Pengantar RT/RW'],
                 );
             }
         }

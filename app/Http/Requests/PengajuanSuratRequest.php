@@ -88,4 +88,21 @@ class PengajuanSuratRequest extends FormRequest
 
         return $rules;
     }
+
+    public function attributes(): array
+    {
+        $pengajuan = $this->route('pengajuan');
+        $jenisSuratId = $pengajuan instanceof PengajuanSurat
+            ? $pengajuan->jenis_surat_id
+            : $this->input('jenis_surat_id');
+        $syaratSurat = JenisSurat::with('syaratSurat')
+            ->find($jenisSuratId)
+            ?->syaratSurat ?? collect();
+
+        return $syaratSurat
+            ->mapWithKeys(fn ($syarat): array => [
+                'dokumen.'.$syarat->id => $syarat->nama_dokumen,
+            ])
+            ->all();
+    }
 }

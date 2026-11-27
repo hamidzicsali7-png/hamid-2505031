@@ -93,6 +93,44 @@ class WargaPengajuanTest extends TestCase
             ->assertDontSee('Belum ada layanan surat aktif');
     }
 
+    public function test_surat_pengantar_rt_rw_opsional_dan_error_dokumen_memakai_nama_syarat(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $warga = User::query()->where('email', 'warga@sikades.test')->firstOrFail();
+        $jenisSurat = JenisSurat::query()->where('kode', 'SKD')->firstOrFail();
+        $syarat = $jenisSurat->syaratSurat()->get()->keyBy('nama_dokumen');
+        $syaratKtp = $syarat->get('Fotokopi KTP');
+        $syaratRtRw = $syarat->get('Surat Pengantar RT/RW');
+
+        $this->assertTrue($syaratKtp->wajib);
+        $this->assertFalse($syaratRtRw->wajib);
+
+        $this->actingAs($warga)
+            ->get(route('warga.pengajuan.create', ['jenis_surat_id' => $jenisSurat->id]))
+            ->assertOk()
+            ->assertSee('Surat Pengantar RT/RW')
+            ->assertSee('(opsional)');
+
+        $this->actingAs($warga)
+            ->post(route('warga.pengajuan.store'), [
+                'jenis_surat_id' => $jenisSurat->id,
+                'keperluan' => 'Keperluan administrasi',
+                'aksi' => 'ajukan',
+                'data_tambahan' => ['lama_tinggal' => '5 tahun'],
+            ])
+            ->assertSessionHasErrors([
+                'dokumen.'.$syaratKtp->id,
+            ]);
+
+        $errors = session('errors');
+        $this->assertFalse($errors->has('dokumen.'.$syaratRtRw->id));
+        $this->assertStringContainsString(
+            'Fotokopi KTP',
+            $errors->first('dokumen.'.$syaratKtp->id),
+        );
+    }
+
     public function test_warga_can_save_a_draft_submit_it_and_resubmit_after_revision(): void
     {
         Storage::fake('local');
