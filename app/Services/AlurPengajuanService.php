@@ -4,17 +4,11 @@ namespace App\Services;
 
 use App\Enums\StatusPengajuan;
 use App\Exceptions\TransisiPengajuanTidakSah;
-use App\Models\JenisSurat;
 use App\Models\LogAktivitas;
-use App\Models\NomorSuratCounter;
-use App\Models\PejabatDesa;
 use App\Models\PengajuanSurat;
-use App\Models\PengaturanDesa;
-use App\Models\SuratTerbit;
 use App\Models\User;
 use App\Notifications\StatusPengajuanNotification;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AlurPengajuanService
@@ -46,6 +40,10 @@ class AlurPengajuanService
                 );
             }
 
+            if ($statusTujuan === StatusPengajuan::Selesai && ! $pengajuan->suratTerbit()->exists()) {
+                throw new TransisiPengajuanTidakSah('Pengajuan tidak dapat diselesaikan sebelum surat diterbitkan.');
+            }
+
             $catatanStatus = in_array($statusTujuan, [StatusPengajuan::Ditolak, StatusPengajuan::Revisi], true)
                 ? $alasan
                 : null;
@@ -64,10 +62,6 @@ class AlurPengajuanService
 
             $pengajuan->update($data);
 
-            if ($statusTujuan === StatusPengajuan::Selesai) {
-                $this->terbitkanSurat($pengajuan);
-            }
-
             LogAktivitas::create([
                 'user_id' => $pelaku->id,
                 'pengajuan_surat_id' => $pengajuan->id,
@@ -82,6 +76,16 @@ class AlurPengajuanService
                 $statusTujuan,
                 $catatanStatus,
             ));
+
+            if ($statusTujuan === StatusPengajuan::Disetujui) {
+                $suratTerbit = app(GenerateSuratService::class)->terbitkan(
+                    $pengajuan->fresh(['jenisSurat', 'penduduk', 'user']),
+                    $pelaku,
+                    $ipAddress,
+                );
+
+                return $suratTerbit->pengajuanSurat;
+            }
 
             return $pengajuan->fresh();
         });
@@ -119,36 +123,6 @@ class AlurPengajuanService
 
         return $statusAsal === StatusPengajuan::Disetujui
             && $statusTujuan === StatusPengajuan::Selesai
-            && $pelaku->hasAnyRole(['admin', 'sekretaris']);
-    }
-
-    private function terbitkanSurat(PengajuanSurat $pengajuan): void
-    {
-        $tahun = now()->year;
-        $counter = NomorSuratCounter::query()->firstOrCreate(
-            ['jenis_surat_id' => $pengajuan->jenis_surat_id, 'tahun' => $tahun],
-            ['urutan_terakhir' => 0],
-        );
-        $counter->increment('urutan_terakhir');
-        $urutan = str_pad((string) $counter->fresh()->urutan_terakhir, 4, '0', STR_PAD_LEFT);
-        $jenisSurat = JenisSurat::query()->findOrFail($pengajuan->jenis_surat_id);
-        $pengaturan = PengaturanDesa::query()->firstOrFail();
-        $pejabat = PejabatDesa::query()
-            ->where('jabatan', 'Kepala Desa')
-            ->where('aktif', true)
-            ->firstOrFail();
-        $nomorSurat = strtr($pengaturan->format_nomor_surat, [
-            '{nomor}' => $urutan,
-            '{kode}' => $jenisSurat->kode,
-            '{tahun}' => (string) $tahun,
-        ]);
-
-        SuratTerbit::create([
-            'pengajuan_surat_id' => $pengajuan->id,
-            'nomor_surat' => $nomorSurat,
-            'tgl_terbit' => now()->toDateString(),
-            'pejabat_id' => $pejabat->id,
-            'kode_verifikasi' => (string) Str::uuid(),
-        ]);
+            && $pelaku->hasAnyRole(['admin', 'kades', 'sekretaris']);
     }
 }

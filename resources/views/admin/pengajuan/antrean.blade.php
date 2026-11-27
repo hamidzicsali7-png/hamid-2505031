@@ -42,7 +42,7 @@
                                     Alasan untuk warga
                                     <textarea name="catatan" rows="4" x-bind:required="perluAlasan" class="mt-2 w-full rounded-xl border-slate-200 text-sm focus:border-primary focus:ring-primary" placeholder="Jelaskan alasan penolakan atau hal yang perlu direvisi"></textarea>
                                 </label>
-                                <p x-show="!perluAlasan" class="rounded-xl bg-soft p-3 text-sm text-slate-600">Pengajuan akan disetujui dan warga akan menerima notifikasi.</p>
+                                <p x-show="!perluAlasan" class="rounded-xl bg-soft p-3 text-sm text-slate-600">Pengajuan akan disetujui, surat otomatis diterbitkan sebagai PDF, dan warga akan menerima notifikasi.</p>
                                 <div class="flex justify-end gap-2">
                                     <button type="button" @click="terbuka = false" class="rounded-xl bg-soft px-4 py-2.5 text-sm font-bold text-slate-600">Batal</button>
                                     <button class="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white">Konfirmasi</button>

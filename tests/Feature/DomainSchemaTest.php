@@ -19,6 +19,7 @@ use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DomainSchemaTest extends TestCase
@@ -40,6 +41,7 @@ class DomainSchemaTest extends TestCase
         ]);
         $this->assertSame(6, JenisSurat::withCount('syaratSurat')->get()->count());
         $this->assertSame(18, SyaratSurat::count());
+        $this->assertSame('surat.templates.domisili', JenisSurat::where('kode', 'SKD')->value('template_view'));
     }
 
     public function test_domain_models_cast_data_and_expose_both_sides_of_relations(): void
@@ -98,23 +100,26 @@ class DomainSchemaTest extends TestCase
 
     public function test_completing_an_application_issues_a_sequentially_numbered_letter(): void
     {
+        Storage::fake('local');
         $this->seed(RoleSeeder::class);
         $jenisSurat = JenisSurat::factory()->create(['kode' => 'SKD']);
         $pengajuan = PengajuanSurat::factory()->create([
             'jenis_surat_id' => $jenisSurat->id,
-            'status' => StatusPengajuan::Disetujui,
+            'status' => StatusPengajuan::Diajukan,
         ]);
         PejabatDesa::factory()->create(['jabatan' => 'Kepala Desa', 'aktif' => true]);
         PengaturanDesa::factory()->create(['format_nomor_surat' => '{nomor}/{kode}/{tahun}']);
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
+        $sekretaris = User::factory()->create();
+        $sekretaris->assignRole('sekretaris');
+        $kades = User::factory()->create();
+        $kades->assignRole('kades');
 
-        app(AlurPengajuanService::class)->transisikan(
+        $alur = app(AlurPengajuanService::class);
+        $alur->transisikan($pengajuan, StatusPengajuan::Diverifikasi, $sekretaris);
+        $alur->transisikan(
             $pengajuan,
-            StatusPengajuan::Selesai,
-            $admin,
-            null,
-            '127.0.0.1',
+            StatusPengajuan::Disetujui,
+            $kades,
         );
 
         $this->assertSame('0001/SKD/'.now()->year, $pengajuan->fresh()->suratTerbit->nomor_surat);

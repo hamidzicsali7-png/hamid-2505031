@@ -16,8 +16,6 @@
                 \App\Enums\StatusPengajuan::Ditolak->value => 'Tolak pengajuan',
                 \App\Enums\StatusPengajuan::Revisi->value => 'Minta revisi',
             ];
-        } elseif ($status === \App\Enums\StatusPengajuan::Disetujui && $peran->hasAnyRole(['admin', 'sekretaris'])) {
-            $opsiStatus = [\App\Enums\StatusPengajuan::Selesai->value => 'Tandai selesai dan terbitkan surat'];
         }
     @endphp
 
@@ -129,8 +127,17 @@
                     <p class="rounded-2xl bg-soft p-4 text-sm text-slate-500">Tidak ada tindakan yang tersedia untuk peran dan status ini.</p>
                 @endif
 
-                @if ($pengajuan->status === \App\Enums\StatusPengajuan::Selesai)
-                    <a href="{{ route('admin.pengajuan.pdf', $pengajuan) }}" class="block rounded-xl bg-slate-900 px-4 py-3 text-center text-sm font-bold text-white">Unduh Surat PDF</a>
+                @if ($pengajuan->status === \App\Enums\StatusPengajuan::Selesai && $pengajuan->suratTerbit)
+                    <div class="space-y-2">
+                        <a target="_blank" rel="noopener" href="{{ route('admin.pengajuan.pdf', $pengajuan) }}" class="block rounded-xl bg-primary px-4 py-3 text-center text-sm font-bold text-white">Lihat PDF</a>
+                        <a href="{{ route('admin.pengajuan.pdf', ['pengajuan' => $pengajuan, 'unduh' => 1]) }}" class="block rounded-xl bg-slate-900 px-4 py-3 text-center text-sm font-bold text-white">Unduh PDF</a>
+                        @if ($peran->hasRole('admin'))
+                            <form method="POST" action="{{ route('admin.pengajuan.pdf.cetak-ulang', $pengajuan) }}">
+                                @csrf
+                                <button class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700">Cetak Ulang</button>
+                            </form>
+                        @endif
+                    </div>
                 @endif
 
                 <dl class="space-y-3 border-t border-slate-100 pt-4 text-xs">

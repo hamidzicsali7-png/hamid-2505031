@@ -10,7 +10,6 @@ use App\Models\JenisSurat;
 use App\Models\PengajuanSurat;
 use App\Models\PengaturanDesa;
 use App\Services\PengajuanSuratService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -158,17 +157,25 @@ class PengajuanSuratController extends Controller
         return Storage::disk('local')->download($dokumen->file_path, $namaFile);
     }
 
-    public function pdf(PengajuanSurat $pengajuan)
+    public function pdf(PengajuanSurat $pengajuan, Request $request)
     {
         $this->authorize('view', $pengajuan);
         abort_unless($pengajuan->status === StatusPengajuan::Selesai, 404);
 
-        $pengajuan->load(['penduduk', 'jenisSurat', 'suratTerbit.pejabatDesa']);
-        abort_unless($pengajuan->suratTerbit, 404);
-
         $suratTerbit = $pengajuan->suratTerbit;
+        abort_unless($suratTerbit?->file_pdf && Storage::disk('local')->exists($suratTerbit->file_pdf), 404);
 
-        return Pdf::loadView('surat.pdf', compact('pengajuan', 'suratTerbit'))
-            ->download('surat-'.$suratTerbit->nomor_surat.'.pdf');
+        $namaFile = 'surat-'.$suratTerbit->id.'.pdf';
+
+        if ($request->boolean('unduh')) {
+            return Storage::disk('local')->download($suratTerbit->file_pdf, $namaFile, [
+                'Content-Type' => 'application/pdf',
+            ]);
+        }
+
+        return response()->file(Storage::disk('local')->path($suratTerbit->file_pdf), [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$namaFile.'"',
+        ]);
     }
 }

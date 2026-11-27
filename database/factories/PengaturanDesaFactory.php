@@ -28,7 +28,7 @@ class PengaturanDesaFactory extends Factory
             'email' => fake()->safeEmail(),
             'logo_path' => null,
             'nama_kades' => fake()->name(),
-            'format_nomor_surat' => '{nomor}/{kode}/{tahun}',
+            'format_nomor_surat' => '470/{urutan}/DS/{bulan_romawi}/{tahun}',
         ];
     }
 }

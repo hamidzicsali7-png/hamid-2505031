@@ -69,7 +69,8 @@
                 <a href="{{ route('warga.pengajuan.edit', $pengajuan) }}" class="inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white">Perbaiki dan Ajukan Ulang</a>
             @endif
             @if ($pengajuan->status === \App\Enums\StatusPengajuan::Selesai && $pengajuan->suratTerbit)
-                <a href="{{ route('warga.pengajuan.pdf', $pengajuan) }}" class="inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white">Unduh Surat PDF</a>
+                <a target="_blank" rel="noopener" href="{{ route('warga.pengajuan.pdf', $pengajuan) }}" class="inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white">Lihat PDF</a>
+                <a href="{{ route('warga.pengajuan.pdf', ['pengajuan' => $pengajuan, 'unduh' => 1]) }}" class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Unduh PDF</a>
             @endif
         </div>
     </div>

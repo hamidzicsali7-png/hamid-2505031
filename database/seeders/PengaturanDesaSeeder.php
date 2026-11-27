@@ -20,7 +20,7 @@ class PengaturanDesaSeeder extends Seeder
             'telepon' => '0221234567',
             'email' => 'kantor@desamakmur.test',
             'nama_kades' => 'Bapak Kepala Desa',
-            'format_nomor_surat' => '{nomor}/{kode}/{tahun}',
+            'format_nomor_surat' => '470/{urutan}/DS/{bulan_romawi}/{tahun}',
         ]);
         $pengaturan->save();
     }

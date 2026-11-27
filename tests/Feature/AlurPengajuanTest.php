@@ -5,12 +5,15 @@ namespace Tests\Feature;
 use App\Enums\StatusPengajuan;
 use App\Exceptions\TransisiPengajuanTidakSah;
 use App\Models\JenisSurat;
+use App\Models\PejabatDesa;
 use App\Models\Penduduk;
 use App\Models\PengajuanSurat;
+use App\Models\PengaturanDesa;
 use App\Models\User;
 use App\Services\AlurPengajuanService;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AlurPengajuanTest extends TestCase
@@ -25,6 +28,9 @@ class AlurPengajuanTest extends TestCase
 
     public function test_pengajuan_dapat_diverifikasi_operator_lalu_disetujui_kades_dan_mengirim_notifikasi(): void
     {
+        Storage::fake('local');
+        PengaturanDesa::factory()->create();
+        PejabatDesa::factory()->create(['jabatan' => 'Kepala Desa', 'aktif' => true]);
         [$warga, $pengajuan] = $this->buatPengajuan(StatusPengajuan::Diajukan);
         $sekretaris = User::factory()->create();
         $sekretaris->assignRole('sekretaris');
@@ -45,12 +51,54 @@ class AlurPengajuanTest extends TestCase
             ])
             ->assertRedirect();
 
-        $this->assertSame(StatusPengajuan::Disetujui, $pengajuan->fresh()->status);
-        $this->assertSame(2, $warga->notifications()->count());
+        $pengajuan->refresh();
+        $suratTerbit = $pengajuan->suratTerbit()->firstOrFail();
+
+        $this->assertSame(StatusPengajuan::Selesai, $pengajuan->status);
+        $this->assertSame(3, $warga->notifications()->count());
         $this->assertTrue($warga->notifications->contains(
             fn ($notifikasi) => $notifikasi->data['status'] === 'disetujui',
         ));
-        $this->assertSame(2, $pengajuan->logAktivitas()->count());
+        $this->assertTrue($warga->notifications->contains(
+            fn ($notifikasi) => $notifikasi->data['status'] === 'selesai',
+        ));
+        $this->assertSame(3, $pengajuan->logAktivitas()->count());
+        Storage::disk('local')->assertExists($suratTerbit->file_pdf);
+        $this->assertStringStartsWith('%PDF-', Storage::disk('local')->get($suratTerbit->file_pdf));
+        $this->get(route('surat.verifikasi', $suratTerbit->kode_verifikasi))
+            ->assertOk()
+            ->assertSee($suratTerbit->nomor_surat)
+            ->assertSee('Dokumen terverifikasi');
+
+        $this->actingAs($warga)
+            ->get(route('warga.pengajuan.pdf', $pengajuan))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+        $this->get(route('warga.pengajuan.pdf', ['pengajuan' => $pengajuan, 'unduh' => 1]))
+            ->assertDownload('surat-'.$suratTerbit->id.'.pdf');
+        $orangLain = User::factory()->create();
+        $orangLain->assignRole('warga');
+        $this->actingAs($orangLain)
+            ->get(route('warga.pengajuan.pdf', $pengajuan))
+            ->assertForbidden();
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $this->actingAs($admin)
+            ->get(route('admin.pengajuan.pdf', $pengajuan))
+            ->assertOk();
+        $this->actingAs($sekretaris)
+            ->post(route('admin.pengajuan.pdf.cetak-ulang', $pengajuan))
+            ->assertForbidden();
+        $this->actingAs($admin)
+            ->post(route('admin.pengajuan.pdf.cetak-ulang', $pengajuan))
+            ->assertRedirect();
+        Storage::disk('local')->assertExists($suratTerbit->file_pdf);
+        $this->assertSame(
+            $suratTerbit->nomor_surat,
+            $pengajuan->fresh()->suratTerbit->nomor_surat,
+        );
+        $this->assertDatabaseCount('surat_terbit', 1);
     }
 
     public function test_pengajuan_ditolak_tanpa_alasan_gagal_dan_status_tidak_berubah(): void

@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotifikasiController;
+use App\Http\Controllers\SuratVerifikasiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'));
+Route::get('/verifikasi/{kodeVerifikasi}', [SuratVerifikasiController::class, 'show'])->name('surat.verifikasi');
 
 Route::get('/dashboard', function () {
     $user = request()->user();

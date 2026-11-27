@@ -21,7 +21,7 @@ class JenisSuratFactory extends Factory
             'kode' => fake()->unique()->bothify('JS??##'),
             'nama' => fake()->words(3, true),
             'deskripsi' => fake()->sentence(),
-            'template_view' => 'surat.pdf',
+            'template_view' => 'surat.templates.domisili',
             'aktif' => true,
             'field_tambahan' => [],
         ];

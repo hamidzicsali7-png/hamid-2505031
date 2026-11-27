@@ -8,7 +8,7 @@ use App\Models\DokumenPengajuan;
 use App\Models\JenisSurat;
 use App\Models\PengajuanSurat;
 use App\Services\AlurPengajuanService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\GenerateSuratService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -96,7 +96,6 @@ class PengajuanSuratController extends Controller
             'status' => ['required', Rule::in([
                 StatusPengajuan::Diverifikasi->value,
                 StatusPengajuan::Disetujui->value,
-                StatusPengajuan::Selesai->value,
                 StatusPengajuan::Ditolak->value,
                 StatusPengajuan::Revisi->value,
             ])],
@@ -113,15 +112,31 @@ class PengajuanSuratController extends Controller
         return back()->with('status', 'Status pengajuan berhasil diperbarui.');
     }
 
-    public function pdf(PengajuanSurat $pengajuan)
+    public function pdf(PengajuanSurat $pengajuan, Request $request)
     {
-        $pengajuan->load(['penduduk', 'jenisSurat', 'suratTerbit.pejabatDesa']);
-        abort_unless($pengajuan->suratTerbit, 404);
-
+        abort_unless($pengajuan->status === StatusPengajuan::Selesai, 404);
         $suratTerbit = $pengajuan->suratTerbit;
-        $pdf = Pdf::loadView('surat.pdf', compact('pengajuan', 'suratTerbit'));
+        abort_unless($suratTerbit?->file_pdf && Storage::disk('local')->exists($suratTerbit->file_pdf), 404);
 
-        return $pdf->download('surat-'.$suratTerbit->nomor_surat.'.pdf');
+        $namaFile = 'surat-'.$suratTerbit->id.'.pdf';
+
+        if ($request->boolean('unduh')) {
+            return Storage::disk('local')->download($suratTerbit->file_pdf, $namaFile, [
+                'Content-Type' => 'application/pdf',
+            ]);
+        }
+
+        return response()->file(Storage::disk('local')->path($suratTerbit->file_pdf), [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$namaFile.'"',
+        ]);
+    }
+
+    public function cetakUlang(PengajuanSurat $pengajuan, GenerateSuratService $service)
+    {
+        $service->cetakUlang($pengajuan);
+
+        return back()->with('success', 'PDF surat berhasil dicetak ulang.');
     }
 
     public function dokumen(

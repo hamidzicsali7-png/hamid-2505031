@@ -25,6 +25,9 @@ Route::middleware(['auth', 'role:admin|kades|sekretaris'])
         Route::get('/pengajuan/{pengajuan}', [PengajuanSuratController::class, 'show'])->name('pengajuan.show');
         Route::patch('/pengajuan/{pengajuan}/status', [PengajuanSuratController::class, 'status'])->name('pengajuan.status');
         Route::get('/pengajuan/{pengajuan}/pdf', [PengajuanSuratController::class, 'pdf'])->name('pengajuan.pdf');
+        Route::post('/pengajuan/{pengajuan}/pdf/cetak-ulang', [PengajuanSuratController::class, 'cetakUlang'])
+            ->middleware('role:admin')
+            ->name('pengajuan.pdf.cetak-ulang');
         Route::get('/antrean-persetujuan', [PengajuanSuratController::class, 'antrean'])
             ->middleware('role:kades')
             ->name('antrean-persetujuan.index');

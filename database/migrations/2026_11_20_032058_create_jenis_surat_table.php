@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('kode', 30)->unique();
             $table->string('nama');
             $table->text('deskripsi')->nullable();
-            $table->string('template_view')->default('surat.pdf');
+            $table->string('template_view')->default('surat.templates.domisili');
             $table->boolean('aktif')->default(true);
             $table->json('field_tambahan')->nullable();
             $table->timestamps();

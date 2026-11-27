@@ -11,8 +11,8 @@
             <div class="md:col-span-2">
                 <label for="tanda_tangan" class="mb-1.5 block text-sm font-semibold text-slate-700">Gambar Tanda Tangan</label>
                 @if ($pejabatDesa->tanda_tangan_path)<img src="{{ Storage::disk('public')->url($pejabatDesa->tanda_tangan_path) }}" alt="Tanda tangan {{ $pejabatDesa->nama }}" class="mb-3 h-24 rounded-xl border border-slate-100 bg-white object-contain p-2">@endif
-                <input id="tanda_tangan" name="tanda_tangan" type="file" accept="image/*" class="block w-full rounded-xl border border-slate-200 text-sm file:mr-4 file:border-0 file:bg-primary-50 file:px-4 file:py-2.5 file:font-semibold file:text-primary">
-                <p class="mt-1 text-xs text-slate-400">Format gambar, maksimal 2 MB. Kosongkan jika tidak ingin mengganti.</p>
+                <input id="tanda_tangan" name="tanda_tangan" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="block w-full rounded-xl border border-slate-200 text-sm file:mr-4 file:border-0 file:bg-primary-50 file:px-4 file:py-2.5 file:font-semibold file:text-primary">
+                <p class="mt-1 text-xs text-slate-400">Format JPG atau PNG, maksimal 2 MB. Kosongkan jika tidak ingin mengganti.</p>
                 @error('tanda_tangan')<p class="mt-1 text-xs text-danger">{{ $message }}</p>@enderror
             </div>
         </div>
