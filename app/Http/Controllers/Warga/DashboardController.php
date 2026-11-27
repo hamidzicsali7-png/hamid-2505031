@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Warga;
 use App\Enums\StatusPengajuan;
 use App\Http\Controllers\Controller;
 use App\Models\PengajuanSurat;
-use App\Models\PengaturanDesa;
+use App\Services\PengaturanDesaService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, PengaturanDesaService $pengaturanDesa): View
     {
         $user = $request->user();
         $pengajuan = PengajuanSurat::query()
@@ -38,7 +38,7 @@ class DashboardController extends Controller
             ->get();
         $penduduk = $user->penduduk;
         $profilCocok = $penduduk && $user->nik === $penduduk->nik;
-        $teleponDesa = PengaturanDesa::query()->value('telepon');
+        $teleponDesa = $pengaturanDesa->ambilOpsional()?->telepon;
 
         return view('warga.dashboard', compact(
             'jumlahPerStatus',

@@ -6,8 +6,8 @@ use App\Exports\LaporanSuratExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\LaporanRequest;
 use App\Models\JenisSurat;
-use App\Models\PengaturanDesa;
 use App\Services\LaporanSuratService;
+use App\Services\PengaturanDesaService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -26,19 +26,25 @@ class LaporanController extends Controller
         ]);
     }
 
-    public function excel(LaporanRequest $request, LaporanSuratService $service): BinaryFileResponse
-    {
+    public function excel(
+        LaporanRequest $request,
+        LaporanSuratService $service,
+        PengaturanDesaService $pengaturanDesa,
+    ): BinaryFileResponse {
         $laporan = $service->buatLaporan($request->validated());
-        $pengaturan = PengaturanDesa::query()->firstOrFail();
+        $pengaturan = $pengaturanDesa->ambil();
         $namaFile = 'laporan-surat-'.$laporan['tanggalMulai']->format('Ymd').'-'.$laporan['tanggalSelesai']->format('Ymd').'.xlsx';
 
         return Excel::download(new LaporanSuratExport($laporan, $pengaturan), $namaFile);
     }
 
-    public function pdf(LaporanRequest $request, LaporanSuratService $service): Response
-    {
+    public function pdf(
+        LaporanRequest $request,
+        LaporanSuratService $service,
+        PengaturanDesaService $pengaturanDesa,
+    ): Response {
         $laporan = $service->buatLaporan($request->validated());
-        $laporan['pengaturan'] = PengaturanDesa::query()->firstOrFail();
+        $laporan['pengaturan'] = $pengaturanDesa->ambil();
         $pdf = Pdf::loadView('admin.laporan.pdf', $laporan)->setPaper('a4', 'portrait');
         $namaFile = 'laporan-surat-'.$laporan['tanggalMulai']->format('Ymd').'-'.$laporan['tanggalSelesai']->format('Ymd').'.pdf';
 

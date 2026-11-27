@@ -24,7 +24,7 @@ class PengaturanDesaRequest extends FormRequest
             'email' => ['required', 'email', 'max:255'],
             'nama_kades' => ['required', 'string', 'max:255'],
             'format_nomor_surat' => ['required', 'string', 'max:255'],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:2048'],
         ];
     }
 }

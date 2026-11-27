@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\JenisSurat;
-use App\Models\PengaturanDesa;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -25,12 +24,14 @@ class NomorSuratService
         12 => 'XII',
     ];
 
+    public function __construct(private readonly PengaturanDesaService $pengaturanDesa) {}
+
     public function generate(JenisSurat $jenisSurat, ?CarbonInterface $tanggal = null): string
     {
         $tanggal ??= now();
 
         return DB::transaction(function () use ($jenisSurat, $tanggal): string {
-            $pengaturan = PengaturanDesa::query()->firstOrFail();
+            $pengaturan = $this->pengaturanDesa->ambil();
             $tahun = (int) $tanggal->format('Y');
             $sekarang = now();
 

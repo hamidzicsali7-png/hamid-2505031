@@ -81,6 +81,7 @@ class PengajuanSuratRequest extends FormRequest
                 $wajibDiunggah ? 'required' : 'nullable',
                 'file',
                 'mimes:pdf,jpg,jpeg,png',
+                'mimetypes:application/pdf,image/jpeg,image/png',
                 'max:2048',
             ];
         }

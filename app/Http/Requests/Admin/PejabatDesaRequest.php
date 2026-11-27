@@ -18,7 +18,7 @@ class PejabatDesaRequest extends FormRequest
             'jabatan' => ['required', 'string', 'max:255'],
             'nip' => ['nullable', 'string', 'max:100'],
             'aktif' => ['required', 'boolean'],
-            'tanda_tangan' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'tanda_tangan' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:2048'],
         ];
     }
 }

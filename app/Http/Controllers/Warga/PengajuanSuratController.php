@@ -8,8 +8,8 @@ use App\Http\Requests\PengajuanSuratRequest;
 use App\Models\DokumenPengajuan;
 use App\Models\JenisSurat;
 use App\Models\PengajuanSurat;
-use App\Models\PengaturanDesa;
 use App\Services\PengajuanSuratService;
+use App\Services\PengaturanDesaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -48,7 +48,7 @@ class PengajuanSuratController extends Controller
         ]);
     }
 
-    public function create(Request $request): View
+    public function create(Request $request, PengaturanDesaService $pengaturanDesa): View
     {
         $jenisSurat = JenisSurat::query()
             ->with('syaratSurat')
@@ -57,7 +57,7 @@ class PengajuanSuratController extends Controller
             ->get();
         $terpilih = $jenisSurat->firstWhere('id', (int) $request->query('jenis_surat_id'));
         $penduduk = $request->user()->penduduk;
-        $teleponDesa = PengaturanDesa::query()->value('telepon');
+        $teleponDesa = $pengaturanDesa->ambilOpsional()?->telepon;
         $profilCocok = $penduduk && $request->user()->nik === $penduduk->nik;
 
         return view('warga.pengajuan.create', [

@@ -99,6 +99,29 @@ class AdminMasterDataTest extends TestCase
         $this->get(route('admin.pengaturan-desa.index'))->assertOk()->assertSee('Desa Uji SIKADES');
     }
 
+    public function test_upload_tanda_tangan_rejects_image_extensions_with_non_image_content(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $filePath = tempnam(sys_get_temp_dir(), 'sikades-upload');
+        file_put_contents($filePath, 'bukan gambar');
+
+        try {
+            $this->actingAs($admin)
+                ->post(route('admin.pejabat-desa.store'), [
+                    'nama' => 'Pejabat Uji',
+                    'jabatan' => 'Sekretaris Desa',
+                    'aktif' => '1',
+                    'tanda_tangan' => new UploadedFile($filePath, 'palsu.png', null, UPLOAD_ERR_OK, true),
+                ])
+                ->assertSessionHasErrors('tanda_tangan');
+        } finally {
+            unlink($filePath);
+        }
+
+        $this->assertDatabaseMissing('pejabat_desa', ['nama' => 'Pejabat Uji']);
+    }
+
     public function test_read_only_staff_can_view_master_data_but_cannot_change_it(): void
     {
         $this->seed(DatabaseSeeder::class);

@@ -23,6 +23,7 @@ class GenerateSuratService
     public function __construct(
         private readonly NomorSuratService $nomorSurat,
         private readonly AlurPengajuanService $alurPengajuan,
+        private readonly PengaturanDesaService $pengaturanDesa,
     ) {}
 
     public function terbitkan(
@@ -50,7 +51,7 @@ class GenerateSuratService
                     throw new LogicException('Surat untuk pengajuan ini sudah pernah diterbitkan.');
                 }
 
-                $pengaturan = PengaturanDesa::query()->firstOrFail();
+                $pengaturan = $this->pengaturanDesa->ambil();
                 $pejabat = PejabatDesa::query()
                     ->where('jabatan', 'Kepala Desa')
                     ->where('aktif', true)
@@ -96,7 +97,7 @@ class GenerateSuratService
                 throw new LogicException('Cetak ulang hanya tersedia untuk surat yang sudah terbit.');
             }
 
-            $pengaturan = PengaturanDesa::query()->firstOrFail();
+            $pengaturan = $this->pengaturanDesa->ambil();
             $filePdf = $pengajuan->suratTerbit->file_pdf
                 ?: 'surat-terbit/'.$pengajuan->suratTerbit->kode_verifikasi.'.pdf';
             $this->simpanPdf(

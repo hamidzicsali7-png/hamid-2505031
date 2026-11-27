@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException as ExcelValidationException;
@@ -105,7 +106,13 @@ class PendudukController extends Controller
         $this->authorize('create', Penduduk::class);
 
         $validated = $request->validate([
-            'file' => ['required', 'file', 'mimes:xlsx,xls,csv,txt', 'max:10240'],
+            'file' => [
+                'required',
+                'file',
+                'mimes:xlsx,xls,csv,txt',
+                'mimetypes:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/plain',
+                'max:10240',
+            ],
         ]);
         $jumlahSebelum = Penduduk::count();
         $impor = new PendudukImport;
@@ -125,7 +132,9 @@ class PendudukController extends Controller
                 'file' => implode(' ', array_slice($errors, 0, 10)),
             ]);
         } catch (QueryException $exception) {
-            report($exception);
+            Log::warning('Impor data penduduk gagal karena konflik data.', [
+                'exception' => $exception::class,
+            ]);
 
             throw ValidationException::withMessages([
                 'file' => 'Impor gagal karena ada data yang berbenturan dengan data tersimpan. Periksa NIK dan coba lagi.',

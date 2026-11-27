@@ -29,7 +29,9 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->patch('/profile', [
                 'name' => 'Test User',
+                'nik' => '3201010101010101',
                 'email' => 'test@example.com',
+                'no_hp' => '081234567890',
             ]);
 
         $response
@@ -39,8 +41,39 @@ class ProfileTest extends TestCase
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
+        $this->assertSame('3201010101010101', $user->nik);
         $this->assertSame('test@example.com', $user->email);
+        $this->assertSame('081234567890', $user->no_hp);
         $this->assertNull($user->email_verified_at);
+    }
+
+    public function test_profile_rejects_an_nik_already_used_by_another_user(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'nik' => $otherUser->nik,
+                'email' => $user->email,
+            ])
+            ->assertSessionHasErrors('nik');
+    }
+
+    public function test_user_can_change_their_password_with_the_current_password(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->put(route('password.update'), [
+                'current_password' => 'password',
+                'password' => 'password-baru-123',
+                'password_confirmation' => 'password-baru-123',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertTrue(password_verify('password-baru-123', $user->fresh()->password));
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void

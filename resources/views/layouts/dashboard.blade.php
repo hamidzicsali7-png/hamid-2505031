@@ -32,6 +32,13 @@
             'icon' => 'approval',
         ]]);
     }
+
+    if (auth()->user()->hasRole('admin')) {
+        array_splice($menu, 4, 0, [
+            ['label' => 'Kelola Pengguna', 'route' => 'admin.pengguna.index', 'icon' => 'users'],
+            ['label' => 'Log Aktivitas', 'route' => 'admin.log-aktivitas.index', 'icon' => 'chart'],
+        ]);
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="id">

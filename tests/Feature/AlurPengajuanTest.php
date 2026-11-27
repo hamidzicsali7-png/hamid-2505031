@@ -118,6 +118,27 @@ class AlurPengajuanTest extends TestCase
         $this->assertSame(0, $pengajuan->logAktivitas()->count());
     }
 
+    public function test_alasan_penolakan_disimpan_di_pengajuan_tetapi_tidak_di_log_aktivitas(): void
+    {
+        [, $pengajuan] = $this->buatPengajuan(StatusPengajuan::Diajukan);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $catatan = 'Informasi pribadi tidak perlu disalin ke log.';
+
+        $this->actingAs($admin)
+            ->patch(route('admin.pengajuan.status', $pengajuan), [
+                'status' => StatusPengajuan::Ditolak->value,
+                'catatan' => $catatan,
+            ])
+            ->assertRedirect();
+
+        $this->assertSame($catatan, $pengajuan->fresh()->catatan);
+        $this->assertStringNotContainsString(
+            $catatan,
+            $pengajuan->logAktivitas()->latest()->firstOrFail()->keterangan,
+        );
+    }
+
     public function test_antrean_persetujuan_hanya_dapat_diakses_kades(): void
     {
         [, $pengajuan] = $this->buatPengajuan(StatusPengajuan::Diverifikasi);

@@ -1,13 +1,15 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ArsipSuratController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\JenisSuratController;
 use App\Http\Controllers\Admin\LaporanController;
+use App\Http\Controllers\Admin\LogAktivitasController;
 use App\Http\Controllers\Admin\PejabatDesaController;
 use App\Http\Controllers\Admin\PendudukController;
 use App\Http\Controllers\Admin\PengajuanSuratController;
 use App\Http\Controllers\Admin\PengaturanDesaController;
+use App\Http\Controllers\Admin\PenggunaPetugasController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:admin|kades|sekretaris'])
@@ -19,6 +21,14 @@ Route::middleware(['auth', 'role:admin|kades|sekretaris'])
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('/laporan/excel', [LaporanController::class, 'excel'])->name('laporan.excel');
         Route::get('/laporan/pdf', [LaporanController::class, 'pdf'])->name('laporan.pdf');
+        Route::middleware('role:admin')->group(function () {
+            Route::get('/pengguna', [PenggunaPetugasController::class, 'index'])->name('pengguna.index');
+            Route::get('/pengguna/buat', [PenggunaPetugasController::class, 'create'])->name('pengguna.create');
+            Route::post('/pengguna', [PenggunaPetugasController::class, 'store'])->name('pengguna.store');
+            Route::get('/pengguna/{pengguna}/edit', [PenggunaPetugasController::class, 'edit'])->name('pengguna.edit');
+            Route::put('/pengguna/{pengguna}', [PenggunaPetugasController::class, 'update'])->name('pengguna.update');
+            Route::get('/log-aktivitas', [LogAktivitasController::class, 'index'])->name('log-aktivitas.index');
+        });
         Route::get('/penduduk/template', [PendudukController::class, 'template'])->name('penduduk.template');
         Route::post('/penduduk/impor', [PendudukController::class, 'import'])->name('penduduk.import');
         Route::resource('penduduk', PendudukController::class);

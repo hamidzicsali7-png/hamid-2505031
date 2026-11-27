@@ -5,19 +5,20 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\PengaturanDesaRequest;
 use App\Models\PengaturanDesa;
+use App\Services\PengaturanDesaService;
 use Illuminate\Support\Facades\Storage;
 
 class PengaturanDesaController extends Controller
 {
-    public function index()
+    public function index(PengaturanDesaService $service)
     {
         $this->authorize('viewAny', PengaturanDesa::class);
-        $pengaturan = PengaturanDesa::query()->first() ?? new PengaturanDesa;
+        $pengaturan = $service->ambilOpsional() ?? new PengaturanDesa;
 
         return view('admin.pengaturan-desa.index', compact('pengaturan'));
     }
 
-    public function update(PengaturanDesaRequest $request)
+    public function update(PengaturanDesaRequest $request, PengaturanDesaService $service)
     {
         $pengaturan = PengaturanDesa::query()->first();
         $this->authorize($pengaturan ? 'update' : 'create', $pengaturan ?? PengaturanDesa::class);
@@ -36,6 +37,8 @@ class PengaturanDesaController extends Controller
         if ($request->hasFile('logo') && $logoLama) {
             Storage::disk('public')->delete($logoLama);
         }
+
+        $service->hapusCache();
 
         return to_route('admin.pengaturan-desa.index')->with('success', 'Profil desa berhasil diperbarui.');
     }

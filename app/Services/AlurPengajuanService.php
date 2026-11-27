@@ -66,8 +66,7 @@ class AlurPengajuanService
                 'user_id' => $pelaku->id,
                 'pengajuan_surat_id' => $pengajuan->id,
                 'aksi' => 'pengajuan.status',
-                'keterangan' => "Status pengajuan {$pengajuan->kode_pengajuan} berubah dari {$statusAsal->label()} menjadi {$statusTujuan->label()}."
-                    .($catatanStatus ? ' Catatan: '.$catatanStatus : ''),
+                'keterangan' => "Status pengajuan {$pengajuan->kode_pengajuan} berubah dari {$statusAsal->label()} menjadi {$statusTujuan->label()}.",
                 'ip_address' => $ipAddress ?? '127.0.0.1',
             ]);
 

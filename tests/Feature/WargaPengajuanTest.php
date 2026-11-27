@@ -10,6 +10,7 @@ use App\Models\PengajuanSurat;
 use App\Models\SyaratSurat;
 use App\Models\User;
 use App\Services\AlurPengajuanService;
+use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -70,6 +71,26 @@ class WargaPengajuanTest extends TestCase
             ->assertOk()
             ->assertSee($milikWarga->kode_pengajuan)
             ->assertDontSee($milikWargaLain->kode_pengajuan);
+    }
+
+    public function test_ajukan_surat_menampilkan_semua_layanan_aktif_dari_seeder(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $warga = User::query()->where('email', 'warga@sikades.test')->firstOrFail();
+
+        $this->assertSame(6, JenisSurat::query()->where('aktif', true)->count());
+
+        $this->actingAs($warga)
+            ->get(route('warga.pengajuan.create'))
+            ->assertOk()
+            ->assertSee('Surat Keterangan Domisili')
+            ->assertSee('Surat Keterangan Tidak Mampu')
+            ->assertSee('Surat Keterangan Usaha')
+            ->assertSee('Surat Keterangan Kelahiran')
+            ->assertSee('Surat Keterangan Kematian')
+            ->assertSee('Surat Pengantar SKCK')
+            ->assertDontSee('Belum ada layanan surat aktif');
     }
 
     public function test_warga_can_save_a_draft_submit_it_and_resubmit_after_revision(): void
