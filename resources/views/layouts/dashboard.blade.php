@@ -12,6 +12,10 @@
         ? [
             ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'icon' => 'home'],
             ['label' => 'Pengajuan', 'route' => 'admin.pengajuan.index', 'icon' => 'document'],
+            ['label' => 'Penduduk', 'route' => 'admin.penduduk.index', 'icon' => 'users'],
+            ['label' => 'Jenis Surat', 'route' => 'admin.jenis-surat.index', 'icon' => 'document'],
+            ['label' => 'Pejabat', 'route' => 'admin.pejabat-desa.index', 'icon' => 'users'],
+            ['label' => 'Pengaturan', 'route' => 'admin.pengaturan-desa.index', 'icon' => 'settings'],
         ]
         : [
             ['label' => 'Beranda', 'route' => 'warga.dashboard', 'icon' => 'home'],
@@ -38,23 +42,27 @@
         </a>
         <nav class="flex w-full items-center justify-around md:mt-7 md:flex-col md:gap-3" aria-label="Navigasi utama">
             @foreach ($menu as $item)
-                @php($active = request()->routeIs($item['route']))
+                @php($active = request()->routeIs($item['route'], str_replace('.index', '.*', $item['route'])))
                 <a
                     href="{{ route($item['route']) }}"
                     @if ($active) aria-current="page" @endif
                     title="{{ $item['label'] }}"
-                    class="group relative flex min-w-14 flex-col items-center gap-1 rounded-2xl px-2 py-2 text-white/65 transition hover:bg-white/10 hover:text-white md:h-12 md:w-12 md:min-w-0 md:justify-center md:px-0 {{ $active ? 'bg-white/15 !text-white ring-1 ring-white/10' : '' }}"
+                    class="group relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl px-1 py-2 text-white/65 transition hover:bg-white/10 hover:text-white md:h-12 md:w-12 md:flex-none md:justify-center md:px-0 {{ $active ? 'bg-white/15 !text-white ring-1 ring-white/10' : '' }}"
                 >
                     <span class="grid h-6 w-6 place-items-center">
                         @if ($item['icon'] === 'home')
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2v-9Z"/></svg>
                         @elseif ($item['icon'] === 'document')
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3h7l5 5v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm7 0v5h5M10 13h6m-6 4h6"/></svg>
+                        @elseif ($item['icon'] === 'users')
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2m6-10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        @elseif ($item['icon'] === 'settings')
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m19.4 15 .1.1a1.7 1.7 0 0 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 0 1-3.4 0v-.2A1.7 1.7 0 0 0 7.8 17l-.1.1a1.7 1.7 0 0 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 0 1 0-3.4h.2A1.7 1.7 0 0 0 5.4 6l-.1-.1a1.7 1.7 0 0 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2v-.2a1.7 1.7 0 0 1 3.4 0v.2A1.7 1.7 0 0 0 17 3.4l.1-.1a1.7 1.7 0 0 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 0 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z"/></svg>
                         @else
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
                         @endif
                     </span>
-                    <span class="text-[9px] font-medium leading-none md:hidden">{{ $item['label'] }}</span>
+                    <span class="text-[8px] font-medium leading-none md:hidden">{{ $item['label'] }}</span>
                     <span class="pointer-events-none absolute left-[calc(100%+0.75rem)] top-1/2 hidden -translate-y-1/2 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg transition group-hover:opacity-100 md:block">
                         {{ $item['label'] }}
                     </span>
