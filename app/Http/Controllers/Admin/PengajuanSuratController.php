@@ -15,12 +15,14 @@ class PengajuanSuratController extends Controller
     public function index()
     {
         $pengajuan = PengajuanSurat::with(['penduduk', 'jenisSurat'])->latest()->paginate(12);
+
         return view('admin.pengajuan.index', compact('pengajuan'));
     }
 
     public function show(PengajuanSurat $pengajuan)
     {
         $pengajuan->load(['penduduk', 'jenisSurat', 'diverifikasiOleh', 'disetujuiOleh']);
+
         return view('admin.pengajuan.show', compact('pengajuan'));
     }
 
@@ -36,7 +38,13 @@ class PengajuanSuratController extends Controller
             ])],
             'catatan' => ['nullable', 'string', 'max:2000'],
         ]);
-        $service->ubahStatus($pengajuan, StatusPengajuan::from($validated['status']), $request->user()->id, $validated['catatan'] ?? null);
+        $service->ubahStatus(
+            $pengajuan,
+            StatusPengajuan::from($validated['status']),
+            $request->user()->id,
+            $validated['catatan'] ?? null,
+            $request->ip(),
+        );
 
         return back()->with('status', 'Status pengajuan berhasil diperbarui.');
     }

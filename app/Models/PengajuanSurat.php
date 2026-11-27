@@ -14,6 +14,7 @@ class PengajuanSurat extends Model
     use HasFactory;
 
     protected $table = 'pengajuan_surat';
+
     protected $fillable = [
         'kode_pengajuan',
         'user_id',
@@ -70,5 +71,10 @@ class PengajuanSurat extends Model
     public function suratTerbit(): HasOne
     {
         return $this->hasOne(SuratTerbit::class);
+    }
+
+    public function logAktivitas(): HasMany
+    {
+        return $this->hasMany(LogAktivitas::class);
     }
 }

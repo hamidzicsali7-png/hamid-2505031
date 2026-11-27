@@ -11,10 +11,16 @@ class LogAktivitas extends Model
     use HasFactory;
 
     protected $table = 'log_aktivitas';
-    protected $fillable = ['user_id', 'aksi', 'keterangan', 'ip_address'];
+
+    protected $fillable = ['user_id', 'pengajuan_surat_id', 'aksi', 'keterangan', 'ip_address'];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function pengajuanSurat(): BelongsTo
+    {
+        return $this->belongsTo(PengajuanSurat::class);
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
+use App\Enums\StatusPengajuan;
 use App\Models\PengajuanSurat;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class PengajuanSuratPolicy
 {
@@ -22,7 +22,7 @@ class PengajuanSuratPolicy
     public function view(User $user, PengajuanSurat $pengajuanSurat): bool
     {
         return $user->hasAnyRole(['admin', 'kades', 'sekretaris'])
-            || $pengajuanSurat->penduduk?->user_id === $user->id;
+            || ($user->hasRole('warga') && (int) $pengajuanSurat->user_id === (int) $user->id);
     }
 
     /**
@@ -39,7 +39,11 @@ class PengajuanSuratPolicy
     public function update(User $user, PengajuanSurat $pengajuanSurat): bool
     {
         return $user->hasAnyRole(['admin', 'kades', 'sekretaris'])
-            || ($pengajuanSurat->penduduk?->user_id === $user->id && in_array($pengajuanSurat->status->value, ['draft', 'revisi']));
+            || (
+                $user->hasRole('warga')
+                && (int) $pengajuanSurat->user_id === (int) $user->id
+                && in_array($pengajuanSurat->status, [StatusPengajuan::Draft, StatusPengajuan::Revisi], true)
+            );
     }
 
     /**

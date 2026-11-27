@@ -14,9 +14,10 @@ use App\Models\PengaturanDesa;
 use App\Models\SuratTerbit;
 use App\Models\SyaratSurat;
 use App\Models\User;
+use App\Services\PengajuanSuratService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Services\PengajuanSuratService;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class DomainSchemaTest extends TestCase
@@ -69,8 +70,8 @@ class DomainSchemaTest extends TestCase
         $this->assertIsArray($jenisSurat->field_tambahan);
         $this->assertIsBool($syarat->wajib);
         $this->assertIsBool($pejabat->aktif);
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $penduduk->tgl_lahir);
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $suratTerbit->tgl_terbit);
+        $this->assertInstanceOf(Carbon::class, $penduduk->tgl_lahir);
+        $this->assertInstanceOf(Carbon::class, $suratTerbit->tgl_terbit);
 
         $this->assertTrue($user->penduduk->is($penduduk));
         $this->assertTrue($penduduk->user->is($user));
@@ -109,5 +110,10 @@ class DomainSchemaTest extends TestCase
 
         $this->assertSame('0001/SKD/'.now()->year, $pengajuan->fresh()->suratTerbit->nomor_surat);
         $this->assertSame(StatusPengajuan::Selesai, $pengajuan->fresh()->status);
+        $this->assertDatabaseHas('log_aktivitas', [
+            'pengajuan_surat_id' => $pengajuan->id,
+            'aksi' => 'pengajuan.status',
+            'keterangan' => 'Status pengajuan '.$pengajuan->kode_pengajuan.' berubah dari Disetujui menjadi Selesai.',
+        ]);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\PendudukService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, PendudukService $pendudukService): RedirectResponse
     {
         $request->authenticate();
 
@@ -35,6 +36,13 @@ class AuthenticatedSessionController extends Controller
         }
 
         if ($user->hasRole('warga')) {
+            if (! $pendudukService->cocokkanDenganAkun($user)) {
+                return redirect()->route('warga.dashboard')->with(
+                    'error',
+                    'Data NIK Anda belum ditemukan atau sudah terhubung ke akun lain. Silakan hubungi kantor desa untuk verifikasi.',
+                );
+            }
+
             return redirect()->route('warga.dashboard');
         }
 
