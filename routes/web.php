@@ -6,7 +6,12 @@ use App\Http\Controllers\SuratVerifikasiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'));
-Route::get('/verifikasi/{kodeVerifikasi}', [SuratVerifikasiController::class, 'show'])->name('surat.verifikasi');
+Route::get('/verifikasi', [SuratVerifikasiController::class, 'index'])
+    ->middleware('throttle:10,1')
+    ->name('surat.verifikasi.form');
+Route::get('/verifikasi/{kodeVerifikasi}', [SuratVerifikasiController::class, 'show'])
+    ->middleware('throttle:10,1')
+    ->name('surat.verifikasi');
 
 Route::get('/dashboard', function () {
     $user = request()->user();

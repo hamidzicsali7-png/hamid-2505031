@@ -68,7 +68,7 @@ class AlurPengajuanTest extends TestCase
         $this->get(route('surat.verifikasi', $suratTerbit->kode_verifikasi))
             ->assertOk()
             ->assertSee($suratTerbit->nomor_surat)
-            ->assertSee('Dokumen terverifikasi');
+            ->assertSee('Surat Asli dan Terdaftar');
 
         $this->actingAs($warga)
             ->get(route('warga.pengajuan.pdf', $pengajuan))
